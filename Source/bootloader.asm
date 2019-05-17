@@ -1,16 +1,22 @@
 ; The bootloader
-; This loads the kernal, which handles everything from here
+; The job of the boot loader is to load the kernal. That is all.
 org 0x7C00
-BITS 16                     ; Tell the compiler we are working in 16-bit mode
 
-BootDrv db 0x80
+; Tell the compiler we are working in 16-bit mode. Real-mode
+BITS 16
 
-cli                         ; disable interrupts to update ss:sp atomically (AFAICT, only required for <= 286)
-xor ax, ax
-mov ss, ax
-mov sp, 0x7C00
-sti
+; Set the drive we will read the kernal from
+BootDrive db 0x80
 
+; Setup the stack
+setup_stack:
+    cli ; Disable interrupts for ss and sp. Required for <= 286
+    xor ax, ax
+    mov ss, ax
+    mov sp, 0x7C00
+    sti
+
+; Jump to the proper spot in memory that we should be at. Just in case
 jmp 0x0000:start_16
 
 start_16:
@@ -19,30 +25,31 @@ start_16:
     mov ds, ax
     mov es, ax
 
-mov si, text_string
-call print_string_16
-
-text_string db 'Testing!', 0x0D, 0xA, 0
-
 load_sector_2:
     mov  al, 0x01           ; load 1 sector
-    mov  bx, 0x7E00         ; destination (might as well load it right after your bootloader)
+    mov  bx, 0x7E00         ; destination
     mov  cx, 0x0002         ; cylinder 0, sector 2
-    mov  dl, [BootDrv]      ; boot drive
+    mov  dl, [BootDrive]      ; boot drive
     xor  dh, dh             ; head 0
-    call read_sectors_16
-    jnc  .success           ; if carry flag is set, either the disk system wouldn't reset, or we exceeded our maximum attempts and the disk is probably shagged
-    mov  si, read_failure_str
-    call print_string_16
-    jmp halt                ; jump to a hang routine to prevent further execution
-.success:
-    jmp 0x7E00
 
-read_failure_str db 'Boot disk read failure!', 13, 10, 0
+    call read_sectors_16
+    ; If carry is set, we either couldn't reset the disk system, or exceeded our max attempts.
+    jnc  .success
+
+    mov si, TEXT_loadFailed
+    call print_string_16
+
+    ; Jump to halt, which just prevents further code execution
+    jmp halt
+.success:
+    ; Jump to the kernal start, and continue there.
+    jmp 0x7E00
 
 %include "halt.asm"
 %include "read_sectors_16.asm"
 %include "print_string_16.asm"
+
+TEXT_loadFailed  db 'Load sector failed!', 0x0D, 0xA, 0
 
 times 510-($-$$) db 0	    ; Pad remainder of boot sector with 0s
 dw 0xAA55		            ; The standard PC boot signature
