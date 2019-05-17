@@ -5,20 +5,24 @@ BITS 16                     ; Tell the compiler we are working in 16-bit mode
 
 BootDrv db 0x80
 
-jmp 0x0000:start_16
-
-xor ax, ax
 cli                         ; disable interrupts to update ss:sp atomically (AFAICT, only required for <= 286)
+xor ax, ax
 mov ss, ax
 mov sp, 0x7C00
 sti
+
+jmp 0x0000:start_16
 
 start_16:
     ; initialise essential segment registers
     xor ax, ax
     mov ds, ax
     mov es, ax
-    retn
+
+mov si, text_string
+call print_string_16
+
+text_string db 'Testing!', 0
 
 load_sector_2:
     mov  al, 0x01           ; load 1 sector
@@ -33,7 +37,6 @@ load_sector_2:
     jmp halt                ; jump to a hang routine to prevent further execution
 .success:
     jmp 0x7E00
-
 
 read_failure_str db 'Boot disk read failure!', 13, 10, 0
 
