@@ -6,7 +6,7 @@ call print_string_16; Call print_string, coming back here after
 
 jmp $			    ; Jump to here, from here. Infinite loop.
 
-text_string db 'This is my first OS, and it works!', 0
+text_string db 'This is my first OS, and it works!', 0x0D, 0xA, 0
 
 %include "print_string_16.asm"
 

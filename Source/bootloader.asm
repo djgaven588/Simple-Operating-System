@@ -22,7 +22,7 @@ start_16:
 mov si, text_string
 call print_string_16
 
-text_string db 'Testing!', 0
+text_string db 'Testing!', 0x0D, 0xA, 0
 
 load_sector_2:
     mov  al, 0x01           ; load 1 sector
