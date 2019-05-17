@@ -25,13 +25,14 @@ start_16:
     mov ds, ax
     mov es, ax
 
+text_string db 'Testing!', 0x0D, 0xA, 0
 load_sector_2:
     mov  al, 0x01           ; load 1 sector
     mov  bx, 0x7E00         ; destination
     mov  cx, 0x0002         ; cylinder 0, sector 2
     mov  dl, [BootDrive]      ; boot drive
     xor  dh, dh             ; head 0
-
+    
     call read_sectors_16
     ; If carry is set, we either couldn't reset the disk system, or exceeded our max attempts.
     jnc  .success
