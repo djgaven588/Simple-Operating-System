@@ -23,7 +23,11 @@ start_16:
     mov ds, ax
     mov es, ax
 
-; text_string db 'Testing!', 0x0D, 0xA, 0
+; The next line is magic, don't touch it unless you want to go on a bug hunt!
+magic db 0x00
+; This fixes what the magic does, and makes it work
+mov si, TEXT_startText
+
 mov si, TEXT_startText
 call print_string_16
 
