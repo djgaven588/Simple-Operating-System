@@ -1,5 +1,5 @@
 ; The bootloader
-; The job of the boot loader is to load the kernal. That is all.
+; This loads the kernal, which handles everything from here
 org 0x7C00
 
 ; Tell the compiler we are working in 16-bit mode. Real-mode
@@ -23,11 +23,6 @@ start_16:
     mov ds, ax
     mov es, ax
 
-; The next line is magic, don't touch it unless you want to go on a bug hunt!
-magic db 0x00
-; This fixes what the magic does, and makes it work
-mov si, TEXT_startText
-
 mov si, TEXT_startText
 call print_string_16
 
@@ -37,7 +32,7 @@ load_sector_2:
     mov  cx, 0x0002         ; cylinder 0, sector 2
     mov  dl, [BootDrive]    ; boot drive
     xor  dh, dh             ; head 0
-    
+
     call read_sectors_16
     ; If carry is set, we either couldn't reset the disk system, or exceeded our max attempts.
     jnc  .success
